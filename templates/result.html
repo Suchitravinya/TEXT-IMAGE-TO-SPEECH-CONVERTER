@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech Result - Image to Speech</title>
+    <style>
+        /* General Styling */
+        body {
+            background-color: #111;
+            background: linear-gradient(135deg, #4e73df, #1cc88a); /* Gradient from index page */
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: #1e90ff;
+            font-size: 40px;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
+        }
+
+        .stylish-tamil {
+            font-size: 48px;
+            font-weight: bold;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #ff69b4;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        /* Text Box Styling */
+        .text-box {
+            background-color: #222;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.6);
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        p {
+            font-size: 18px;
+            word-wrap: break-word;
+        }
+
+        .copy-icon {
+            cursor: pointer;
+            font-size: 28px;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #1e90ff;
+            color: white;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background-color 0.3s;
+        }
+
+        .copy-icon:hover {
+            background-color: #0056b3;
+        }
+
+        .copy-message {
+            color: #fcfcfc;
+            font-size: 16px;
+            position: absolute;
+            top: 10px;
+            right: 50px;
+            display: none;
+            font-weight: bold;
+        }
+
+        /* Audio Container Styling */
+        .audio-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .audio-container audio {
+            width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .download-icon {
+            font-size: 28px;
+            background-color: #1e90ff;
+            padding: 10px;
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.3s;
+            margin-top: 10px;
+        }
+
+        .download-icon:hover {
+            transform: scale(1.1);
+        }
+
+        /* Language Selection Form */
+        .language-selection {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .language-selection form {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: #333;
+            padding: 10px 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .language-selection label {
+            color: #fff;
+            font-size: 18px;
+        }
+
+        .language-selection input[type="radio"] {
+            transform: scale(1.2);
+        }
+
+        /* Button for Data History */
+        .icon-button {
+            background-color: #1e90ff;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            border-radius: 25px;
+            font-weight: bold;
+            margin: 10px;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            transition: background-color 0.3s;
+        }
+
+        .icon-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Data Container */
+        #dataContainer {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow-wrap: break-word;
+            color: #fff;
+            min-height: 40px;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .data-box {
+            background-color: #444;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .data-box p {
+            font-size: 16px;
+        }
+
+    </style>
+    <link rel="icon" type="image/jpg" href="assets/icon.jpg">
+</head>
+
+<body>
+    <h1>Text Image or text to Speech Result</h1>
+    <div class="text-box">
+        <p>{{ text }}</p>
+        <span class="copy-message" id="copyMessage">Copied</span> <!-- Copy success message -->
+        <span class="copy-icon" onclick="copyToClipboard()">📋</span> <!-- Copy icon -->
+    </div>
+
+    <div class="audio-container">
+        <audio id="audioPlayer" controls autoplay>
+            <source src="{{ url_for('uploaded_file', filename='audio_speech.mp3') }}" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+        <a class="download-icon" href="{{ url_for('uploaded_file', filename='audio_speech.mp3') }}" download="audio_speech.mp3">📥</a>
+    </div>
+
+    <div id="dataContainer"></div> <!-- Container for displaying data -->
+
+    <script>
+        // Function to copy text to clipboard
+        function copyToClipboard() {
+            var textElement = document.querySelector('.text-box p');
+            var textToCopy = textElement.textContent;
+
+            var textArea = document.createElement('textarea');
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            // Display the copy success message
+            var copyMessage = document.getElementById('copyMessage');
+            copyMessage.style.display = 'block';
+
+            // Hide the message after a few seconds
+            setTimeout(function () {
+                copyMessage.style.display = 'none';
+            }, 2000);
+        }
+
+        // Fetch and display previous data
+        function getDataAndDisplay() {
+            fetch('http://localhost:8080/getdata')
+                .then(response => response.json())
+                .then(dataArray => {
+                    var dataContainer = document.getElementById('dataContainer');
+                    dataContainer.innerHTML = '';
+                    dataArray.forEach(dataObject => {
+                        var dataBox = document.createElement('div');
+                        dataBox.classList.add('data-box');
+
+                        var textElement = document.createElement('p');
+                        textElement.textContent = `Text: ${dataObject.text}`;
+                        dataBox.appendChild(textElement);
+
+                        dataContainer.appendChild(dataBox);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+        }
+    </script>
+</body>
+
+</html>
